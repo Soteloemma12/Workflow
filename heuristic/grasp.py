@@ -1,41 +1,42 @@
 import pandas as pd
-import numpy as np
-import random 
+from numba import jit
+import numpy as np 
 import math
-from statistics import mean
 
-
+@jit(nopython=True)
 def centros(X,evalu,n_days):
     C=[]
-    aux=random.choice(X)
+    aux=np.random.choice(X)
     while(aux[1]!=1):
-        aux=random.choice(X)
+        aux=np.random.choice(X)
     C.append(int(aux[0]))
     dist=evalu[int(C[0]-1)]
-    aux=random.choice(dist)
-    while(aux<=mean(dist)*0.7):
-        aux=random.choice(dist)
+    aux=np.random.choice(dist)
+    while(aux<=np.mean(dist)*0.7):
+        aux=np.random.choice(dist)
     indx=dist.index(aux)
     C.append(int(X[indx][0]))
     for i in range(n_days-2):
         dist=np.array(dist)
         dist+=np.array(evalu[int(C[i+1]-1)])
         dist=list(dist)
-        aux=random.choice(dist)
-        while(aux<=mean(dist)*0.9):
-            aux=random.choice(dist)
+        aux=np.random.choice(dist)
+        while(aux<=np.mean(dist)*0.9):
+            aux=np.random.choice(dist)
         indx=dist.index(aux)
         C.append(int(X[indx][0]))    
     return C
 
 def clientes(C,X,asig,frec,data,evalu,n_days):
+    c1 = int(1*10**9)
+    c2 = c1*10
     ntotal=len(X)
     climit=data.Frecuencia.sum()/n_days
     vmax=data.Frecuencia*data.Vol_Entrega
     vlim=vmax.sum()/n_days
     for i in range(n_days):
         dist=list(evalu[C[i]-1].copy())
-        dist[C[i]-1]=1000000000
+        dist[C[i]-1]= c1
         asig[i][C[i]-1]=1
         frec[C[i]-1]-=1
         maxv=X[C[i]-1][2]
@@ -49,13 +50,13 @@ def clientes(C,X,asig,frec,data,evalu,n_days):
             ind=f.index(aux)
             indx=dist.index(aux)
             while(frec[indx]<1):
-                dist[indx]=10000000000
-                f[ind]=10000000000
+                dist[indx]= c2
+                f[ind]= c2
                 aux=min(f)
                 indx=dist.index(aux)
                 ind=f.index(aux)
-            dist[indx]=1000000000
-            f[ind]=10000000000
+            dist[indx]= c1
+            f[ind]= c2
             asig[i][indx]=1
             frec[indx]-=1
             maxv+=X[indx][2]
@@ -64,10 +65,10 @@ def clientes(C,X,asig,frec,data,evalu,n_days):
                 aux=min(dist)
                 indx=dist.index(aux)
                 while(frec[indx]<1):
-                    dist[indx]=10000000000
+                    dist[indx]= c2
                     aux=min(dist)
                     indx=dist.index(aux)
-                dist[indx]=1000000000
+                dist[indx]= c1
                 asig[i][indx]=1
                 frec[indx]-=1
                 maxv+=X[indx][2]
@@ -76,7 +77,7 @@ def clientes(C,X,asig,frec,data,evalu,n_days):
                     break
                 if(j>=climit*1.1):
                     break
-        print("Volumen Total del Día ",i,": ",maxv,"Número Total de clientes: ",j)
+        #print("Volumen Total del Día ",i,": ",maxv,"Número Total de clientes: ",j)
         
 def grasp(data,evalu,n_days):
     X=data[['Id_Cliente',"Frecuencia","Vol_Entrega","lat","lon"]].to_numpy()

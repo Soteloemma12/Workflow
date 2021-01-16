@@ -4,3 +4,6 @@ streamlit
 matplotlib
 scipy==1.4.1
 scikit-learn
+likelihood
+tensorflow
+numba
